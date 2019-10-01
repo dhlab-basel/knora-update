@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.14.5)
 project(knora-update)
 set(CMAKE_CXX_STANDARD 14)
 
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 find_package(PkgConfig)
 pkg_check_modules(RDF REQUIRED IMPORTED_TARGET redland)
 pkg_check_modules(RAPTOR2 REQUIRED IMPORTED_TARGET raptor2)

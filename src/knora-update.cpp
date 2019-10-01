@@ -37,92 +37,97 @@
 int main(int argc, char *argv[]);
 
 
-static unsigned const char *rdfxml_content=(unsigned const char *)
-        "<?xml version=\"1.0\"?>\
-<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\
-     xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\
-  <rdf:Description rdf:about=\"http://www.dajobe.org/\">\
-    <dc:title>Dave Beckett's Home Page</dc:title>\
-    <dc:creator>Dave Beckett</dc:creator>\
-    <dc:description>The generic home page of Dave Beckett.</dc:description>\
-  </rdf:Description> \
-</rdf:RDF>\
-";
-
 int
-main(int argc, char *argv[])
-{
-    librdf_world* world;
-    librdf_storage* storage;
-    librdf_model* model;
-    librdf_parser* parser;
-    librdf_statement* statement;
-    librdf_uri* uri;
-    char *program=argv[0];
-    int rc=0;
+main(int argc, char *argv[]) {
+    librdf_world *world;
+    librdf_storage *storage;
+    librdf_model *model;
+    librdf_parser *parser;
+    librdf_statement *statement;
+    librdf_uri *uri;
+    char *program = argv[0];
+    int rc = 0;
     raptor_world *raptor_world_ptr;
-    raptor_iostream* iostr;
+    raptor_iostream *iostr;
+    const unsigned char *uri_string;
 
-    world=librdf_new_world();
+    if (argc < 2) {
+        fprintf(stderr, "%s: No file URI provided\n", program);
+        return (1);
+    }
+
+    uri_string = reinterpret_cast<const unsigned char *>(argv[1]);
+
+    world = librdf_new_world();
     librdf_world_open(world);
     raptor_world_ptr = librdf_world_get_raptor(world);
 
-    uri=librdf_new_uri(world, (const unsigned char*)"http://example.librdf.org/");
+    uri = librdf_new_uri(world, uri_string);
 
-    if(!uri) {
+    if (!uri) {
         fprintf(stderr, "%s: Failed to create URI\n", program);
-        return(1);
+        return (1);
     }
 
-    storage=librdf_new_storage(world, "memory", "test", NULL);
-    if(!storage) {
+    storage = librdf_new_storage(world, "memory", "test", NULL);
+
+    if (!storage) {
         fprintf(stderr, "%s: Failed to create new storage\n", program);
-        rc=1;
+        rc = 1;
         goto tidyworld;
     }
 
-    model=librdf_new_model(world, storage, NULL);
-    if(!model) {
+    model = librdf_new_model(world, storage, NULL);
+
+    if (!model) {
         fprintf(stderr, "%s: Failed to create model\n", program);
-        rc=1;
+        rc = 1;
         goto tidystorage;
     }
 
-    parser=librdf_new_parser(world, "rdfxml", NULL, NULL);
-    if(!parser) {
+    parser = librdf_new_parser(world, "trig", NULL, NULL);
+
+    if (!parser) {
         fprintf(stderr, "%s: Failed to create new parser 'rdfxml'\n", program);
-        rc=1;
+        rc = 1;
         goto tidystorage;
     }
 
 
-    if(librdf_parser_parse_string_into_model(parser, rdfxml_content, uri, model)) {
+    if (librdf_parser_parse_into_model(parser, uri, NULL, model)) {
         fprintf(stderr, "%s: Failed to parse RDF into model\n", program);
         librdf_free_uri(uri);
-        rc=1;
+        rc = 1;
         goto tidymodel;
     }
 
-    librdf_free_parser(parser); parser=NULL;
+    librdf_free_parser(parser);
+    parser = NULL;
 
-    librdf_free_uri(uri); uri=NULL;
+    librdf_free_uri(uri);
+    uri = NULL;
 
 
-    statement=librdf_new_statement(world);
-    if(!statement) {
+    statement = librdf_new_statement(world);
+    if (!statement) {
         fprintf(stderr, "%s: Failed to parse RDF into model\n", program);
-        rc=1;
+        rc = 1;
         goto tidymodel;
     }
 
+    fprintf(stderr, "%s: parsed RDF into model\n", program);
+
+    /*
     librdf_statement_set_subject(statement,
-                                 librdf_new_node_from_uri_string(world, (const unsigned char*)"http://example.org/subject"));
+                                 librdf_new_node_from_uri_string(world,
+                                                                 (const unsigned char *) "http://example.org/subject"));
 
     librdf_statement_set_predicate(statement,
-                                   librdf_new_node_from_uri_string(world, (const unsigned char*)"http://example.org/pred1"));
+                                   librdf_new_node_from_uri_string(world,
+                                                                   (const unsigned char *) "http://example.org/pred1"));
 
     librdf_statement_set_object(statement,
-                                librdf_new_node_from_literal(world, (const unsigned char*)"object", NULL, 0));
+                                librdf_new_node_from_literal(world, (const unsigned char *) "object", NULL, 0));
 
     librdf_model_add_statement(model, statement);
 
@@ -131,9 +136,9 @@ main(int argc, char *argv[])
     librdf_model_write(model, iostr);
     raptor_free_iostream(iostr);
 
-    if(!librdf_model_contains_statement(model, statement)) {
+    if (!librdf_model_contains_statement(model, statement)) {
         fprintf(stdout, "%s: Model does not contain statement\n", program);
-        rc=1;
+        rc = 1;
         goto tidystatement;
     } else
         fprintf(stdout, "%s: Model contains the statement\n", program);
@@ -149,6 +154,7 @@ main(int argc, char *argv[])
 
     tidystatement:
     librdf_free_statement(statement);
+    */
 
     tidymodel:
     librdf_free_model(model);
@@ -164,5 +170,5 @@ main(int argc, char *argv[])
 #endif
 
     /* keep gcc -Wall happy */
-    return(rc);
+    return (rc);
 }
